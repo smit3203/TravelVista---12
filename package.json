@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npm run dev --prefix TravelVista-1",
-    "build": "npm run build --prefix TravelVista-1",
-    "start": "npm run start --prefix TravelVista-1",
-    "db:push": "npm run db:push --prefix TravelVista-1"
+    "dev": "npm run dev --prefix C:/Users/NAWAB/TravelVista---12/TravelVista-1",
+    "build": "npm run build --prefix C:/Users/NAWAB/TravelVista---12/TravelVista-1",
+    "start": "npm run start --prefix C:/Users/NAWAB/TravelVista---12/TravelVista-1",
+    "db:push": "npm run db:push --prefix C:/Users/NAWAB/TravelVista---12/TravelVista-1"
   }
 }
