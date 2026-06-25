@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travelstud.com - Book Your Travel to Bali</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f9fc;
+            padding: 40px;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        form div {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="phone"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0c7cd5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e90ff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Book Your Travel to Bali</h1>
+    <form action="">
+        <div>
+            <label for="Name">Name</label>
+            <input id="Name" type="text" placeholder="Enter Your Name">
+        </div>
+        <div>
+            <label for="age">Age</label>
+            <input id="age" type="number" placeholder="Enter Your Age">
+        </div>
+        <div>
+            <label for="tel">Phone No</label>
+            <input id="tel" type="tel" placeholder="Enter Your Phone Number">
+        </div>
+        <div>
+            <label for="Email">Email</label>
+            <input id="Email" type="email" placeholder="Enter Your Email">
+        </div>
+        <div>
+            <label for="Address">Address</label>
+            <textarea name="Address" id="Address" placeholder="Enter Your Address"></textarea>
+        </div>
+        <div>
+            <label for="Destination">Destination</label>
+            <input id="Destination" type="text" placeholder="Enter Your Destination">
+        </div>
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+</body>
+
+</html>
