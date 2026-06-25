@@ -72,6 +72,189 @@ export class DatabaseStorage implements IStorage {
         await db.delete(hotels);
         await db.delete(flights);
       } else {
+        const existingFlights = await db.select().from(flights);
+        if (existingFlights.length < 5) {
+          await db.delete(flights);
+          const sampleFlights: InsertFlight[] = [
+            {
+              airline: "Singapore Airlines",
+              flightNumber: "SQ 123",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Tokyo (NRT)",
+              departureTime: "08:30",
+              arrivalTime: "15:00+1",
+              duration: "14h 30m",
+              stops: "1 stop",
+              price: "52999.00"
+            },
+            {
+              airline: "All Nippon Airways",
+              flightNumber: "NH 830",
+              departureCity: "Mumbai (BOM)",
+              arrivalCity: "Tokyo (HND)",
+              departureTime: "09:00",
+              arrivalTime: "19:00",
+              duration: "9h 00m",
+              stops: "Non-stop",
+              price: "72499.00"
+            },
+            {
+              airline: "Air India",
+              flightNumber: "AI 306",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Tokyo (NRT)",
+              departureTime: "21:15",
+              arrivalTime: "08:45+1",
+              duration: "8h 30m",
+              stops: "Non-stop",
+              price: "58999.00"
+            },
+            {
+              airline: "VietJet Air",
+              flightNumber: "VJ 891",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Bali (DPS)",
+              departureTime: "07:45",
+              arrivalTime: "16:30",
+              duration: "8h 45m",
+              stops: "1 stop",
+              price: "28499.00"
+            },
+            {
+              airline: "Batik Air",
+              flightNumber: "OD 231",
+              departureCity: "Mumbai (BOM)",
+              arrivalCity: "Bali (DPS)",
+              departureTime: "23:15",
+              arrivalTime: "08:30+1",
+              duration: "9h 15m",
+              stops: "1 stop",
+              price: "32999.00"
+            },
+            {
+              airline: "AirAsia",
+              flightNumber: "AK 53",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Bali (DPS)",
+              departureTime: "11:30",
+              arrivalTime: "21:00",
+              duration: "9h 30m",
+              stops: "1 stop",
+              price: "26999.00"
+            },
+            {
+              airline: "Air India",
+              flightNumber: "AI 143",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Paris (CDG)",
+              departureTime: "13:15",
+              arrivalTime: "18:30",
+              duration: "9h 15m",
+              stops: "Non-stop",
+              price: "58999.00"
+            },
+            {
+              airline: "Air France",
+              flightNumber: "AF 217",
+              departureCity: "Mumbai (BOM)",
+              arrivalCity: "Paris (CDG)",
+              departureTime: "02:15",
+              arrivalTime: "07:45",
+              duration: "9h 30m",
+              stops: "Non-stop",
+              price: "68499.00"
+            },
+            {
+              airline: "Gulf Air",
+              flightNumber: "GF 131",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Paris (CDG)",
+              departureTime: "21:45",
+              arrivalTime: "07:30+1",
+              duration: "11h 45m",
+              stops: "1 stop",
+              price: "42999.00"
+            },
+            {
+              airline: "Swiss International",
+              flightNumber: "LX 147",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Swiss Alps (ZRH)",
+              departureTime: "01:15",
+              arrivalTime: "06:15",
+              duration: "9h 00m",
+              stops: "Non-stop",
+              price: "64999.00"
+            },
+            {
+              airline: "Etihad Airways",
+              flightNumber: "EY 206",
+              departureCity: "Mumbai (BOM)",
+              arrivalCity: "Swiss Alps (ZRH)",
+              departureTime: "21:30",
+              arrivalTime: "07:00+1",
+              duration: "11h 30m",
+              stops: "1 stop",
+              price: "48499.00"
+            },
+            {
+              airline: "Qatar Airways",
+              flightNumber: "QR 571",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Santorini (JTR)",
+              departureTime: "03:45",
+              arrivalTime: "12:15",
+              duration: "10h 30m",
+              stops: "1 stop",
+              price: "78999.00"
+            },
+            {
+              airline: "IndiGo",
+              flightNumber: "6E 1792",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Maldives (MLE)",
+              departureTime: "09:00",
+              arrivalTime: "13:00",
+              duration: "4h 00m",
+              stops: "Non-stop",
+              price: "18499.00"
+            },
+            {
+              airline: "Vistara",
+              flightNumber: "UK 273",
+              departureCity: "Mumbai (BOM)",
+              arrivalCity: "Maldives (MLE)",
+              departureTime: "11:15",
+              arrivalTime: "14:30",
+              duration: "3h 15m",
+              stops: "Non-stop",
+              price: "21999.00"
+            },
+            {
+              airline: "Thai Airways",
+              flightNumber: "TG 324",
+              departureCity: "New Delhi (DEL)",
+              arrivalCity: "Thailand (BKK)",
+              departureTime: "07:45",
+              arrivalTime: "13:30",
+              duration: "4h 15m",
+              stops: "Non-stop",
+              price: "22999.00"
+            },
+            {
+              airline: "IndiGo",
+              flightNumber: "6E 105",
+              departureCity: "Mumbai (BOM)",
+              arrivalCity: "Thailand (BKK)",
+              departureTime: "08:15",
+              arrivalTime: "14:15",
+              duration: "4h 30m",
+              stops: "Non-stop",
+              price: "16499.00"
+            }
+          ];
+          await db.insert(flights).values(sampleFlights);
+        }
         return; // Data already initialized with new pricing
       }
     }
@@ -476,24 +659,178 @@ export class MemStorage implements IStorage {
       {
         airline: "Singapore Airlines",
         flightNumber: "SQ 123",
-        departureCity: "New York (JFK)",
+        departureCity: "New Delhi (DEL)",
         arrivalCity: "Tokyo (NRT)",
         departureTime: "08:30",
         arrivalTime: "15:00+1",
         duration: "14h 30m",
         stops: "1 stop",
-        price: "899.00"
+        price: "52999.00"
       },
       {
-        airline: "Emirates",
-        flightNumber: "EK 202",
-        departureCity: "New York (JFK)",
+        airline: "All Nippon Airways",
+        flightNumber: "NH 830",
+        departureCity: "Mumbai (BOM)",
+        arrivalCity: "Tokyo (HND)",
+        departureTime: "09:00",
+        arrivalTime: "19:00",
+        duration: "9h 00m",
+        stops: "Non-stop",
+        price: "72499.00"
+      },
+      {
+        airline: "Air India",
+        flightNumber: "AI 306",
+        departureCity: "New Delhi (DEL)",
         arrivalCity: "Tokyo (NRT)",
-        departureTime: "10:15",
-        arrivalTime: "19:00+1",
-        duration: "16h 45m",
+        departureTime: "21:15",
+        arrivalTime: "08:45+1",
+        duration: "8h 30m",
+        stops: "Non-stop",
+        price: "58999.00"
+      },
+      {
+        airline: "VietJet Air",
+        flightNumber: "VJ 891",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Bali (DPS)",
+        departureTime: "07:45",
+        arrivalTime: "16:30",
+        duration: "8h 45m",
         stops: "1 stop",
-        price: "1199.00"
+        price: "28499.00"
+      },
+      {
+        airline: "Batik Air",
+        flightNumber: "OD 231",
+        departureCity: "Mumbai (BOM)",
+        arrivalCity: "Bali (DPS)",
+        departureTime: "23:15",
+        arrivalTime: "08:30+1",
+        duration: "9h 15m",
+        stops: "1 stop",
+        price: "32999.00"
+      },
+      {
+        airline: "AirAsia",
+        flightNumber: "AK 53",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Bali (DPS)",
+        departureTime: "11:30",
+        arrivalTime: "21:00",
+        duration: "9h 30m",
+        stops: "1 stop",
+        price: "26999.00"
+      },
+      {
+        airline: "Air India",
+        flightNumber: "AI 143",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Paris (CDG)",
+        departureTime: "13:15",
+        arrivalTime: "18:30",
+        duration: "9h 15m",
+        stops: "Non-stop",
+        price: "58999.00"
+      },
+      {
+        airline: "Air France",
+        flightNumber: "AF 217",
+        departureCity: "Mumbai (BOM)",
+        arrivalCity: "Paris (CDG)",
+        departureTime: "02:15",
+        arrivalTime: "07:45",
+        duration: "9h 30m",
+        stops: "Non-stop",
+        price: "68499.00"
+      },
+      {
+        airline: "Gulf Air",
+        flightNumber: "GF 131",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Paris (CDG)",
+        departureTime: "21:45",
+        arrivalTime: "07:30+1",
+        duration: "11h 45m",
+        stops: "1 stop",
+        price: "42999.00"
+      },
+      {
+        airline: "Swiss International",
+        flightNumber: "LX 147",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Swiss Alps (ZRH)",
+        departureTime: "01:15",
+        arrivalTime: "06:15",
+        duration: "9h 00m",
+        stops: "Non-stop",
+        price: "64999.00"
+      },
+      {
+        airline: "Etihad Airways",
+        flightNumber: "EY 206",
+        departureCity: "Mumbai (BOM)",
+        arrivalCity: "Swiss Alps (ZRH)",
+        departureTime: "21:30",
+        arrivalTime: "07:00+1",
+        duration: "11h 30m",
+        stops: "1 stop",
+        price: "48499.00"
+      },
+      {
+        airline: "Qatar Airways",
+        flightNumber: "QR 571",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Santorini (JTR)",
+        departureTime: "03:45",
+        arrivalTime: "12:15",
+        duration: "10h 30m",
+        stops: "1 stop",
+        price: "78999.00"
+      },
+      {
+        airline: "IndiGo",
+        flightNumber: "6E 1792",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Maldives (MLE)",
+        departureTime: "09:00",
+        arrivalTime: "13:00",
+        duration: "4h 00m",
+        stops: "Non-stop",
+        price: "18499.00"
+      },
+      {
+        airline: "Vistara",
+        flightNumber: "UK 273",
+        departureCity: "Mumbai (BOM)",
+        arrivalCity: "Maldives (MLE)",
+        departureTime: "11:15",
+        arrivalTime: "14:30",
+        duration: "3h 15m",
+        stops: "Non-stop",
+        price: "21999.00"
+      },
+      {
+        airline: "Thai Airways",
+        flightNumber: "TG 324",
+        departureCity: "New Delhi (DEL)",
+        arrivalCity: "Thailand (BKK)",
+        departureTime: "07:45",
+        arrivalTime: "13:30",
+        duration: "4h 15m",
+        stops: "Non-stop",
+        price: "22999.00"
+      },
+      {
+        airline: "IndiGo",
+        flightNumber: "6E 105",
+        departureCity: "Mumbai (BOM)",
+        arrivalCity: "Thailand (BKK)",
+        departureTime: "08:15",
+        arrivalTime: "14:15",
+        duration: "4h 30m",
+        stops: "Non-stop",
+        price: "16499.00"
       }
     ];
 
