@@ -17,21 +17,44 @@ import BookingConfirmation from "@/pages/booking-confirmation";
 import AuthPage from "@/pages/auth";
 import MyBookingsPage from "@/pages/my-bookings";
 
+import { ComponentType } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { Redirect } from "wouter";
+
+function ProtectedRoute({ component: Component }: { component: ComponentType<any> }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-blue-50/50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-travel-blue"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    // If not authenticated, redirect to /auth
+    return <Redirect to="/auth" />;
+  }
+
+  return <Component />;
+}
+
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
       <Route path="/auth" component={AuthPage} />
-      <Route path="/my-bookings" component={MyBookingsPage} />
-      <Route path="/destinations" component={Destinations} />
-      <Route path="/flights" component={Flights} />
-      <Route path="/hotels" component={Hotels} />
-      <Route path="/packages" component={Packages} />
-      <Route path="/booking" component={Booking} />
-      <Route path="/booking-confirmation" component={BookingConfirmation} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/admin-dashboard-secure" component={Admin} />
-      <Route component={NotFound} />
+      <Route path="/"><ProtectedRoute component={Home} /></Route>
+      <Route path="/my-bookings"><ProtectedRoute component={MyBookingsPage} /></Route>
+      <Route path="/destinations"><ProtectedRoute component={Destinations} /></Route>
+      <Route path="/flights"><ProtectedRoute component={Flights} /></Route>
+      <Route path="/hotels"><ProtectedRoute component={Hotels} /></Route>
+      <Route path="/packages"><ProtectedRoute component={Packages} /></Route>
+      <Route path="/booking"><ProtectedRoute component={Booking} /></Route>
+      <Route path="/booking-confirmation"><ProtectedRoute component={BookingConfirmation} /></Route>
+      <Route path="/contact"><ProtectedRoute component={Contact} /></Route>
+      <Route path="/admin-dashboard-secure"><ProtectedRoute component={Admin} /></Route>
+      <Route><ProtectedRoute component={NotFound} /></Route>
     </Switch>
   );
 }
