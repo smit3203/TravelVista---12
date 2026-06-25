@@ -44,7 +44,7 @@ const Destinations = () => {
                 Explore Amazing Destinations
               </h1>
               <p className="text-xl mb-8">
-                Discover breathtaking locations around the world with TravelStud
+                Discover breathtaking locations around the world with TravelVista
               </p>
               
               {/* Search Bar */}
@@ -173,7 +173,7 @@ const Destinations = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Why Choose TravelStud?
+                Why Choose TravelVista?
               </h2>
               <p className="text-lg text-gray-600">
                 We make travel planning easy and enjoyable
