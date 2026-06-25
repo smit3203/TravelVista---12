@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertBookingSchema, insertContactSchema, insertReviewSchema, type User } from "@shared/schema";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 function getBookingPrice(destination: string, packageType: string) {
   let basePrice = 1000;
@@ -173,12 +174,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payments
   app.post("/api/payments/order", async (req, res) => {
     try {
-      const { destination, packageType } = req.body;
+      const { destination, packageType, customFlightId, customHotelId, nights } = req.body;
       if (!destination || !packageType) {
         return res.status(400).json({ error: "Destination and packageType are required" });
       }
 
-      const price = getBookingPrice(destination, packageType);
+      let price = 0;
+      if (packageType === "custom-package") {
+        if (!customFlightId || !customHotelId || !nights) {
+          return res.status(400).json({ error: "customFlightId, customHotelId, and nights are required for custom packages" });
+        }
+        const flight = await storage.getFlight(Number(customFlightId));
+        const hotel = await storage.getHotel(Number(customHotelId));
+        if (!flight || !hotel) {
+          return res.status(404).json({ error: "Selected flight or hotel not found" });
+        }
+        const flightPrice = parseFloat(flight.price);
+        const hotelPrice = parseFloat(hotel.price);
+        price = Math.round((flightPrice + (hotelPrice * Number(nights))) * 0.85); // 15% discount
+      } else {
+        price = getBookingPrice(destination, packageType);
+      }
+
       const options = {
         amount: Math.round(price * 100), // amount in paise (₹price)
         currency: "INR",
@@ -218,14 +235,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid payment signature" });
       }
 
+      // Fetch the Razorpay order to get the exact amount paid safely
+      const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id);
+      const amountPaid = (Number(razorpayOrder.amount) / 100).toString();
+
       // Save the booking on successful verification
-      const price = getBookingPrice(bookingData.destination, bookingData.packageType);
       const validatedData = insertBookingSchema.parse({
         ...bookingData,
         paymentStatus: "paid",
         paymentId: razorpay_payment_id,
         orderId: razorpay_order_id,
-        amountPaid: price.toString()
+        amountPaid: amountPaid
       });
 
       const booking = await storage.createBooking(validatedData);
@@ -302,6 +322,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Review error:", error);
       res.status(400).json({ error: "Invalid review data" });
+    }
+  });
+
+  // Chat API
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { message, history } = req.body;
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (apiKey) {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+          model: "gemini-1.5-flash",
+          systemInstruction: `You are VistaAI, a premium, friendly AI travel chatbot assistant for the TravelVista website.
+Your goals:
+1. Help users plan their travel itinerary.
+2. Recommend hotels, flights, destinations, and packages available on our platform.
+3. Guide users on how to use the website (e.g. they can build custom packages, view bookings, write hotel reviews, and check maps).
+4. Provide contact details if asked: Phone is +91 8797656432, Email is smitsabhaya@gmail.com, founded by travel expert Smit Sabhaya.
+5. Keep your responses friendly, helpful, relatively concise, and formatted in markdown.
+
+Here is the current catalog data available on TravelVista to help with recommendations:
+- Destinations: Bali (Indonesia), Paris (France), Tokyo (Japan), Swiss Alps (Switzerland), Maldives, Santorini (Greece), Thailand.
+- Custom Package Builder offers a 15% discount if a flight and hotel are booked together!
+`
+        });
+
+        let chatSession;
+        if (history && Array.isArray(history) && history.length > 0) {
+          const formattedHistory = history.map((item: any) => ({
+            role: item.role === 'model' ? 'model' : 'user',
+            parts: [{ text: item.parts[0]?.text || "" }]
+          }));
+          chatSession = model.startChat({ history: formattedHistory });
+        } else {
+          chatSession = model.startChat();
+        }
+
+        const result = await chatSession.sendMessage(message);
+        const response = await result.response;
+        return res.json({ reply: response.text() });
+      } else {
+        const query = message.toLowerCase();
+        let reply = "";
+
+        if (query.includes("hi") || query.includes("hello") || query.includes("hey") || query.includes("greet")) {
+          reply = "Hello! 👋 Welcome to TravelVista! I'm VistaAI, your smart travel assistant. How can I help you plan your dream vacation today?";
+        } else if (query.includes("custom") || query.includes("builder") || query.includes("build") || query.includes("bundle")) {
+          reply = "You can build your own custom travel package on our new **[Custom Package Builder](/custom-package)** page! 🗺️✈️\n\nSimply:\n1. Choose your dream destination\n2. Select your flight\n3. Choose your hotel and stay duration\n\nYou'll automatically receive a **15% bundle discount**! 🤑";
+        } else if (query.includes("hotel") || query.includes("stay") || query.includes("resort") || query.includes("accommodation")) {
+          const hotelsList = await storage.getHotels();
+          const recs = hotelsList.slice(0, 3).map(h => `- **${h.name}** in ${h.location} (₹${parseFloat(h.price).toLocaleString()}/night, ★${h.rating})`).join("\n");
+          reply = `Here are some highly recommended hotels available on TravelVista: 🏨\n\n${recs}\n\nYou can explore all hotel listings, filter by ratings/amenities, and view them on the interactive map on our **[Hotels page](/hotels)**!`;
+        } else if (query.includes("flight") || query.includes("plane") || query.includes("airline")) {
+          const flightsList = await storage.getFlights();
+          const recs = flightsList.slice(0, 3).map(f => `- **${f.airline}** (${f.flightNumber}): ${f.departureCity} ✈️ ${f.arrivalCity} (₹${parseFloat(f.price).toLocaleString()}, ${f.stops})`).join("\n");
+          reply = `We offer multiple flight connections to our popular destinations! Here are a few options: ✈️\n\n${recs}\n\nSearch and filter flights by departure times, stops, and airlines on our **[Flights page](/flights)**!`;
+        } else if (query.includes("package") || query.includes("deal") || query.includes("offer")) {
+          const packagesList = await storage.getPackages();
+          const recs = packagesList.slice(0, 3).map(p => `- **${p.name}** (${p.duration}, ₹${parseFloat(p.price).toLocaleString()}, ★${p.rating})`).join("\n");
+          reply = `Check out our featured ready-made travel packages: 🎒\n\n${recs}\n\nExplore complete packages on our **[Packages page](/packages)** or create your own custom one on our **[Custom Package Builder](/custom-package)**!`;
+        } else if (query.includes("destination") || query.includes("place") || query.includes("country") || query.includes("visit")) {
+          const destList = await storage.getDestinations();
+          const recs = destList.slice(0, 4).map(d => `- **${d.name}**, ${d.country}: ${d.description}`).join("\n");
+          reply = `Discover our popular travel destinations around the world: 🌍\n\n${recs}\n\nSee the full list on our **[Destinations page](/destinations)**!`;
+        } else if (query.includes("contact") || query.includes("email") || query.includes("phone") || query.includes("mobile") || query.includes("number") || query.includes("support")) {
+          reply = "Need support or personal travel advice? 📞✉️ We're here for you!\n\n- **Phone**: +91 8797656432\n- **Email**: smitsabhaya@gmail.com\n- **Founder**: Smit Chhabhaya (Travel Expert)\n\nYou can also send us a message directly via our **[Contact Page](/contact)**.";
+        } else if (query.includes("admin") || query.includes("dashboard")) {
+          reply = "Authorized administrators can access the secure dashboard at **[/admin-dashboard-secure](/admin-dashboard-secure)** by logging in and entering the password `smitsabhaya2024admin`.";
+        } else {
+          reply = "I'm VistaAI, your travel helper! ✈️\n\nI can assist you with:\n- Booking hotels, flights, and packages\n- Creating a custom flight + hotel bundle on the **[Custom Package Builder](/custom-package)** (with a 15% discount!)\n- Finding contact details and support.\n\nWhat would you like to know more about?";
+        }
+
+        return res.json({ reply });
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      res.status(500).json({ error: "Failed to process chat query" });
     }
   });
 

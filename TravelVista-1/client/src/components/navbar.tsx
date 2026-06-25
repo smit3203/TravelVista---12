@@ -16,6 +16,7 @@ const Navbar = () => {
     { href: "/flights", label: "Flights" },
     { href: "/hotels", label: "Hotels" },
     { href: "/packages", label: "Packages" },
+    { href: "/custom-package", label: "Build Package" },
     { href: "/contact", label: "Contact" },
   ];
 

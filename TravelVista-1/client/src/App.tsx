@@ -16,6 +16,8 @@ import Admin from "@/pages/admin";
 import BookingConfirmation from "@/pages/booking-confirmation";
 import AuthPage from "@/pages/auth";
 import MyBookingsPage from "@/pages/my-bookings";
+import CustomPackage from "@/pages/custom-package";
+import VistaChatbot from "@/components/vista-chatbot";
 
 import { ComponentType } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -50,6 +52,7 @@ function Router() {
       <Route path="/flights"><ProtectedRoute component={Flights} /></Route>
       <Route path="/hotels"><ProtectedRoute component={Hotels} /></Route>
       <Route path="/packages"><ProtectedRoute component={Packages} /></Route>
+      <Route path="/custom-package"><ProtectedRoute component={CustomPackage} /></Route>
       <Route path="/booking"><ProtectedRoute component={Booking} /></Route>
       <Route path="/booking-confirmation"><ProtectedRoute component={BookingConfirmation} /></Route>
       <Route path="/contact"><ProtectedRoute component={Contact} /></Route>
@@ -66,6 +69,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <VistaChatbot />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

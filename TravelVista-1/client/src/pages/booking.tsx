@@ -13,8 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { insertBookingSchema } from "@shared/schema";
+import { insertBookingSchema, type Flight, type Hotel } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 
 const bookingFormSchema = insertBookingSchema.extend({
   agreedToTerms: z.boolean().refine(val => val === true, {
@@ -52,6 +53,30 @@ const Booking = () => {
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const packageParam = searchParams.get('package');
   const destParam = searchParams.get('destination');
+  const packageTypeParam = searchParams.get('packageType');
+  const flightIdParam = searchParams.get('flightId');
+  const hotelIdParam = searchParams.get('hotelId');
+  const nightsParam = searchParams.get('nights') ? parseInt(searchParams.get('nights') || "5") : 5;
+
+  const { data: flight } = useQuery<Flight>({
+    queryKey: [`/api/flights/${flightIdParam}`],
+    enabled: !!flightIdParam && packageTypeParam === "custom-package",
+    queryFn: async () => {
+      const response = await fetch(`/api/flights/${flightIdParam}`);
+      if (!response.ok) throw new Error("Failed to fetch flight");
+      return response.json();
+    }
+  });
+
+  const { data: hotel } = useQuery<Hotel>({
+    queryKey: [`/api/hotels/${hotelIdParam}`],
+    enabled: !!hotelIdParam && packageTypeParam === "custom-package",
+    queryFn: async () => {
+      const response = await fetch(`/api/hotels/${hotelIdParam}`);
+      if (!response.ok) throw new Error("Failed to fetch hotel");
+      return response.json();
+    }
+  });
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
@@ -63,7 +88,7 @@ const Booking = () => {
       age: 0,
       travelDate: "",
       destination: destParam || "",
-      packageType: packageParam ? "complete-package" : "",
+      packageType: packageTypeParam || (packageParam ? "complete-package" : ""),
       address: "",
       specialRequests: "",
       agreedToTerms: false,
@@ -86,9 +111,11 @@ const Booking = () => {
 
   const selectedDestination = form.watch("destination");
   const selectedPackageType = form.watch("packageType");
-  const price = selectedDestination && selectedPackageType 
-    ? getBookingPrice(selectedDestination, selectedPackageType)
-    : 0;
+  const price = selectedPackageType === "custom-package"
+    ? ((flight && hotel) ? Math.round((parseFloat(flight.price) + parseFloat(hotel.price) * nightsParam) * 0.85) : 0)
+    : (selectedDestination && selectedPackageType 
+      ? getBookingPrice(selectedDestination, selectedPackageType)
+      : 0);
 
   // Dynamically load Razorpay SDK script
   const loadRazorpayScript = () => {
@@ -126,7 +153,10 @@ const Booking = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           destination: completeBookingData.destination,
-          packageType: completeBookingData.packageType
+          packageType: completeBookingData.packageType,
+          customFlightId: flightIdParam ? parseInt(flightIdParam) : undefined,
+          customHotelId: hotelIdParam ? parseInt(hotelIdParam) : undefined,
+          nights: nightsParam
         })
       });
 
@@ -159,6 +189,13 @@ const Booking = () => {
         handler: async (response: any) => {
           try {
             // 4. Verify payment on server (this also inserts the booking)
+            const finalBookingData = {
+              ...completeBookingData,
+              specialRequests: packageTypeParam === "custom-package"
+                ? `Custom Package | Flight: ${flight?.airline} (${flight?.flightNumber}) | Hotel: ${hotel?.name} (${nightsParam} Nights Stay) | ${completeBookingData.specialRequests || "No extra requests"}`
+                : completeBookingData.specialRequests
+            };
+
             const verifyRes = await fetch("/api/payments/verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -166,7 +203,7 @@ const Booking = () => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                bookingData: completeBookingData
+                bookingData: finalBookingData
               })
             });
 
@@ -358,6 +395,7 @@ const Booking = () => {
                               <SelectItem value="maldives">Maldives</SelectItem>
                               <SelectItem value="santorini">Santorini, Greece</SelectItem>
                               <SelectItem value="thailand">Thailand</SelectItem>
+                              <SelectItem value="swiss">Swiss Alps, Switzerland</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -382,6 +420,9 @@ const Booking = () => {
                               <SelectItem value="hotel-only">Hotel Only</SelectItem>
                               <SelectItem value="flight-hotel">Flight + Hotel</SelectItem>
                               <SelectItem value="complete-package">Complete Package</SelectItem>
+                              {field.value === "custom-package" && (
+                                <SelectItem value="custom-package">Custom Flight + Hotel Bundle</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
