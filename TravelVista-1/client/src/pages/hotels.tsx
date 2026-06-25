@@ -8,10 +8,11 @@ import type { Hotel } from "@shared/schema";
 import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Star, SlidersHorizontal, RotateCcw } from "lucide-react";
+import { Star, SlidersHorizontal, RotateCcw, MapPin } from "lucide-react";
+import MapView from "@/components/map-view";
 
 const AMENITIES_LIST = [
   "Free WiFi",
@@ -39,6 +40,7 @@ const Hotels = () => {
   const [minRating, setMinRating] = useState<number>(0);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
+  const [showMap, setShowMap] = useState<boolean>(false);
 
   const handleBookNow = (hotelId: number) => {
     setLocation(`/booking?hotel=${hotelId}`);
@@ -124,6 +126,18 @@ const Hotels = () => {
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 Filters
+              </Button>
+              
+              <Button
+                variant={showMap ? "default" : "outline"}
+                className={`rounded-xl flex items-center gap-1.5 font-semibold text-sm transition-colors ${
+                  showMap ? "bg-travel-blue text-white hover:bg-travel-dark-blue border-transparent" : "border-gray-200"
+                }`}
+                onClick={() => setShowMap(!showMap)}
+              >
+                <MapPin className="h-4 w-4" />
+                <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
+                <span className="sm:hidden">{showMap ? "Hide" : "Map"}</span>
               </Button>
               
               <div className="flex items-center gap-2">
@@ -226,41 +240,87 @@ const Hotels = () => {
               </div>
             </aside>
 
-            {/* Hotel Cards Grid */}
+            {/* Hotel Cards Grid & Map View */}
             <main className="flex-grow flex-1 w-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="bg-white border rounded-2xl p-4 space-y-4">
-                      <Skeleton className="h-48 w-full rounded-xl" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                        <Skeleton className="h-4 w-full" />
-                      </div>
+              {showMap ? (
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Left Column: Hotels List */}
+                  <div className="w-full lg:w-1/2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {isLoading ? (
+                        Array.from({ length: 4 }).map((_, i) => (
+                          <div key={i} className="bg-white border rounded-2xl p-4 space-y-4">
+                            <Skeleton className="h-48 w-full rounded-xl" />
+                            <div className="space-y-2">
+                              <Skeleton className="h-5 w-3/4" />
+                              <Skeleton className="h-4 w-1/2" />
+                              <Skeleton className="h-4 w-full" />
+                            </div>
+                          </div>
+                        ))
+                      ) : processedHotels.length > 0 ? (
+                        processedHotels.map((hotel) => (
+                          <HotelCard
+                            key={hotel.id}
+                            hotel={hotel}
+                            onBookNow={() => handleBookNow(hotel.id)}
+                          />
+                        ))
+                      ) : (
+                        <div className="col-span-full text-center py-20 bg-white border border-gray-150 rounded-3xl p-8">
+                          <SlidersHorizontal className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <h3 className="text-lg font-bold text-gray-700">No hotels found</h3>
+                          <p className="text-gray-400 text-sm mt-1 max-w-md mx-auto">
+                            We couldn't find any accommodations matching your search.
+                          </p>
+                          <Button variant="outline" className="mt-4 rounded-xl text-sm font-semibold border-gray-250 hover:bg-gray-50" onClick={resetFilters}>
+                            Clear All Filters
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  ))
-                ) : processedHotels.length > 0 ? (
-                  processedHotels.map((hotel) => (
-                    <HotelCard
-                      key={hotel.id}
-                      hotel={hotel}
-                      onBookNow={() => handleBookNow(hotel.id)}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-20 bg-white border border-gray-150 rounded-3xl p-8">
-                    <SlidersHorizontal className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-bold text-gray-700">No hotels found</h3>
-                    <p className="text-gray-400 text-sm mt-1 max-w-md mx-auto">
-                      We couldn't find any accommodations matching your search. Try resetting filters or choosing a different destination.
-                    </p>
-                    <Button variant="outline" className="mt-4 rounded-xl text-sm font-semibold border-gray-250 hover:bg-gray-50" onClick={resetFilters}>
-                      Clear All Filters
-                    </Button>
                   </div>
-                )}
-              </div>
+
+                  {/* Right Column: Interactive Map */}
+                  <div className="w-full lg:w-1/2 lg:sticky lg:top-24 h-[400px] lg:h-[calc(100vh-10rem)] min-h-[400px] z-10">
+                    <MapView hotels={processedHotels} activeLocation={destination} />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {isLoading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="bg-white border rounded-2xl p-4 space-y-4">
+                        <Skeleton className="h-48 w-full rounded-xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-5 w-3/4" />
+                          <Skeleton className="h-4 w-1/2" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      </div>
+                    ))
+                  ) : processedHotels.length > 0 ? (
+                    processedHotels.map((hotel) => (
+                      <HotelCard
+                        key={hotel.id}
+                        hotel={hotel}
+                        onBookNow={() => handleBookNow(hotel.id)}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-20 bg-white border border-gray-150 rounded-3xl p-8">
+                      <SlidersHorizontal className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-lg font-bold text-gray-700">No hotels found</h3>
+                      <p className="text-gray-400 text-sm mt-1 max-w-md mx-auto">
+                        We couldn't find any accommodations matching your search. Try resetting filters or choosing a different destination.
+                      </p>
+                      <Button variant="outline" className="mt-4 rounded-xl text-sm font-semibold border-gray-250 hover:bg-gray-50" onClick={resetFilters}>
+                        Clear All Filters
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </main>
 
           </div>

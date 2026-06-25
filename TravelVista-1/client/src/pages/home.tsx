@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
@@ -11,6 +12,17 @@ import type { Destination, Package, Hotel } from "@shared/schema";
 
 const Home = () => {
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (window.location.hash === "#about-us") {
+      setTimeout(() => {
+        const element = document.getElementById("about-us");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    }
+  }, [window.location.hash]);
 
   const { data: destinations, isLoading: destinationsLoading } = useQuery<Destination[]>({
     queryKey: ['/api/destinations'],
@@ -138,7 +150,7 @@ const Home = () => {
       </section>
 
       {/* About Section */}
-      <section className="py-16 bg-gray-50">
+      <section id="about-us" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 animate-fadeInUp">

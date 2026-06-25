@@ -1,7 +1,7 @@
-import { users, bookings, destinations, packages, hotels, flights, contacts } from "@shared/schema";
-import type { User, InsertUser, Booking, InsertBooking, Destination, InsertDestination, Package, InsertPackage, Hotel, InsertHotel, Flight, InsertFlight, Contact, InsertContact } from "@shared/schema";
+import { users, bookings, destinations, packages, hotels, flights, contacts, reviews } from "@shared/schema";
+import type { User, InsertUser, Booking, InsertBooking, Destination, InsertDestination, Package, InsertPackage, Hotel, InsertHotel, Flight, InsertFlight, Contact, InsertContact, Review, InsertReview } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -39,10 +39,28 @@ export interface IStorage {
   // Contact methods
   createContact(contact: InsertContact): Promise<Contact>;
   getContacts(): Promise<Contact[]>;
+
+  // Review methods
+  getReviews(itemId: number, itemType: string): Promise<Review[]>;
+  createReview(review: InsertReview): Promise<Review>;
 }
 
 export class DatabaseStorage implements IStorage {
   async initializeData() {
+    // Ensure reviews table exists in the database
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "reviews" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "user_id" integer NOT NULL,
+        "username" text NOT NULL,
+        "rating" integer NOT NULL,
+        "comment" text NOT NULL,
+        "item_id" integer NOT NULL,
+        "item_type" text NOT NULL,
+        "created_at" timestamp DEFAULT now()
+      );
+    `);
+
     // Check if data already exists
     const existingDestinations = await db.select().from(destinations);
     if (existingDestinations.length > 0) {
@@ -305,6 +323,20 @@ export class DatabaseStorage implements IStorage {
   async getContacts(): Promise<Contact[]> {
     return await db.select().from(contacts);
   }
+
+  async getReviews(itemId: number, itemType: string): Promise<Review[]> {
+    return await db.select().from(reviews).where(
+      and(
+        eq(reviews.itemId, itemId),
+        eq(reviews.itemType, itemType)
+      )
+    );
+  }
+
+  async createReview(insertReview: InsertReview): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(insertReview).returning();
+    return newReview;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -315,6 +347,7 @@ export class MemStorage implements IStorage {
   private hotels: Map<number, Hotel> = new Map();
   private flights: Map<number, Flight> = new Map();
   private contacts: Map<number, Contact> = new Map();
+  private reviews: Map<number, Review> = new Map();
 
   private userCount = 0;
   private bookingCount = 0;
@@ -323,6 +356,7 @@ export class MemStorage implements IStorage {
   private hotelCount = 0;
   private flightCount = 0;
   private contactCount = 0;
+  private reviewCount = 0;
 
   async initializeData() {
     // Initialize sample destinations
@@ -597,6 +631,21 @@ export class MemStorage implements IStorage {
 
   async getContacts(): Promise<Contact[]> {
     return Array.from(this.contacts.values());
+  }
+
+  async getReviews(itemId: number, itemType: string): Promise<Review[]> {
+    const allReviews = Array.from(this.reviews.values());
+    return allReviews.filter(review => 
+      review.itemId === itemId && 
+      review.itemType === itemType
+    );
+  }
+
+  async createReview(insertReview: InsertReview): Promise<Review> {
+    const id = ++this.reviewCount;
+    const review: Review = { id, ...insertReview, createdAt: new Date() };
+    this.reviews.set(id, review);
+    return review;
   }
 }
 

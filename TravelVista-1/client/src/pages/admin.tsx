@@ -860,20 +860,32 @@ const Admin = () => {
                           <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="link" className="p-0 h-auto text-travel-blue font-semibold hover:underline flex items-center gap-1 text-xs">
+                                <Button variant="link" className="p-0 h-auto text-travel-blue font-semibold hover:underline flex items-center gap-1 text-xs cursor-pointer">
                                   Reply via Email &rarr;
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="start" className="bg-white border rounded-xl shadow-lg p-1 z-50 min-w-[180px]">
-                                <DropdownMenuItem className="cursor-pointer px-3 py-2 text-xs hover:bg-gray-100 rounded-lg flex items-center gap-2" onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${contact.email}&su=Re: ${encodeURIComponent(contact.subject)}`, '_blank')}>
-                                  <Mail className="h-4 w-4 text-red-500" />
-                                  Open in Gmail (Web)
+                                <DropdownMenuItem className="focus:bg-gray-50 cursor-pointer rounded-lg" asChild>
+                                  <a 
+                                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${contact.email}&su=Re: ${encodeURIComponent(contact.subject)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-3 py-2 text-xs flex items-center gap-2 w-full"
+                                  >
+                                    <Mail className="h-4 w-4 text-red-500" />
+                                    Open in Gmail (Web)
+                                  </a>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer px-3 py-2 text-xs hover:bg-gray-100 rounded-lg flex items-center gap-2" onClick={() => window.location.href = `mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject)}`}>
-                                  <Mail className="h-4 w-4 text-blue-500" />
-                                  Open in Default App
+                                <DropdownMenuItem className="focus:bg-gray-50 cursor-pointer rounded-lg" asChild>
+                                  <a 
+                                    href={`mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject)}`}
+                                    className="px-3 py-2 text-xs flex items-center gap-2 w-full"
+                                  >
+                                    <Mail className="h-4 w-4 text-blue-500" />
+                                    Open in Default App
+                                  </a>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer px-3 py-2 text-xs hover:bg-gray-100 rounded-lg flex items-center gap-2" onClick={() => {
+                                <DropdownMenuItem className="focus:bg-gray-50 cursor-pointer rounded-lg px-3 py-2 text-xs flex items-center gap-2" onClick={() => {
                                   navigator.clipboard.writeText(contact.email);
                                   toast({
                                     title: "Copied!",

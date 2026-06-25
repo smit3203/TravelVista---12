@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBookingSchema, insertContactSchema } from "@shared/schema";
+import { insertBookingSchema, insertContactSchema, insertReviewSchema, type User } from "@shared/schema";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
@@ -272,6 +272,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ error: "Authentication failed" });
+    }
+  });
+
+  // Reviews API
+  app.get("/api/reviews/:itemType/:itemId", async (req, res) => {
+    try {
+      const itemId = parseInt(req.params.itemId);
+      const itemType = req.params.itemType;
+      const reviewsList = await storage.getReviews(itemId, itemType);
+      res.json(reviewsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch reviews" });
+    }
+  });
+
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const validatedData = insertReviewSchema.parse({
+        ...req.body,
+        userId: (req.user as User).id,
+        username: (req.user as User).username
+      });
+      const review = await storage.createReview(validatedData);
+      res.status(201).json(review);
+    } catch (error) {
+      console.error("Review error:", error);
+      res.status(400).json({ error: "Invalid review data" });
     }
   });
 
