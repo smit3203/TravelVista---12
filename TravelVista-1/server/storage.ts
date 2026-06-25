@@ -46,7 +46,16 @@ export class DatabaseStorage implements IStorage {
     // Check if data already exists
     const existingDestinations = await db.select().from(destinations);
     if (existingDestinations.length > 0) {
-      return; // Data already initialized
+      const bali = existingDestinations.find((d: any) => d.name === "Bali");
+      if (bali && parseFloat(bali.price) < 5000) {
+        // Clear old seed data to re-initialize with competitive INR pricing
+        await db.delete(destinations);
+        await db.delete(packages);
+        await db.delete(hotels);
+        await db.delete(flights);
+      } else {
+        return; // Data already initialized with new pricing
+      }
     }
 
     // Initialize sample destinations
@@ -56,28 +65,28 @@ export class DatabaseStorage implements IStorage {
         country: "Indonesia",
         description: "Tropical paradise with stunning beaches and culture",
         imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5",
-        price: "599.00"
+        price: "24999.00"
       },
       {
         name: "Paris",
         country: "France",
         description: "City of lights and romance",
         imageUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a",
-        price: "799.00"
+        price: "44999.00"
       },
       {
         name: "Tokyo",
         country: "Japan",
         description: "Modern metropolis with ancient traditions",
         imageUrl: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf",
-        price: "899.00"
+        price: "54999.00"
       },
       {
         name: "Swiss Alps",
         country: "Switzerland",
         description: "Breathtaking mountain landscapes",
         imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-        price: "1299.00"
+        price: "74999.00"
       }
     ];
 
@@ -89,7 +98,7 @@ export class DatabaseStorage implements IStorage {
         name: "Santorini Escape",
         destination: "Santorini, Greece",
         duration: "7 Days / 6 Nights",
-        price: "1499.00",
+        price: "119999.00",
         rating: "4.9",
         reviewCount: 156,
         imageUrl: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff",
@@ -101,7 +110,7 @@ export class DatabaseStorage implements IStorage {
         name: "Maldives Paradise",
         destination: "Maldives",
         duration: "5 Days / 4 Nights",
-        price: "2899.00",
+        price: "149999.00",
         rating: "4.8",
         reviewCount: 89,
         imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5",
@@ -113,7 +122,7 @@ export class DatabaseStorage implements IStorage {
         name: "Thailand Adventure",
         destination: "Thailand",
         duration: "10 Days / 9 Nights",
-        price: "899.00",
+        price: "49999.00",
         rating: "4.7",
         reviewCount: 234,
         imageUrl: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a",
@@ -130,7 +139,7 @@ export class DatabaseStorage implements IStorage {
       {
         name: "Ocean View Resort",
         location: "Bali, Indonesia",
-        price: "199.00",
+        price: "8499.00",
         rating: "5.0",
         imageUrl: "https://images.unsplash.com/photo-1611892440504-42a792e24d32",
         amenities: ["Free WiFi", "Infinity Pool", "Spa Services", "Restaurant"]
@@ -138,7 +147,7 @@ export class DatabaseStorage implements IStorage {
       {
         name: "City Center Hotel",
         location: "Paris, France",
-        price: "149.00",
+        price: "11999.00",
         rating: "4.0",
         imageUrl: "https://images.unsplash.com/photo-1564501049412-61c2a3083791",
         amenities: ["Free WiFi", "Fitness Center", "Concierge", "Valet Parking"]
@@ -146,7 +155,7 @@ export class DatabaseStorage implements IStorage {
       {
         name: "Boutique Hotel",
         location: "Tokyo, Japan",
-        price: "129.00",
+        price: "9499.00",
         rating: "5.0",
         imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa",
         amenities: ["Free WiFi", "Coffee Shop", "Premium Bedding", "Smart TV"]
@@ -166,7 +175,7 @@ export class DatabaseStorage implements IStorage {
         arrivalTime: "15:00+1",
         duration: "14h 30m",
         stops: "1 stop",
-        price: "899.00"
+        price: "94999.00"
       },
       {
         airline: "Emirates",
@@ -177,7 +186,7 @@ export class DatabaseStorage implements IStorage {
         arrivalTime: "19:00+1",
         duration: "16h 45m",
         stops: "1 stop",
-        price: "1199.00"
+        price: "124999.00"
       }
     ];
 

@@ -118,6 +118,47 @@ export default function MyBookingsPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Booking Status Timeline */}
+                    <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                      <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Booking Status Timeline
+                      </div>
+                      <div className="flex items-center justify-between relative px-2 py-1">
+                        {/* Background grey line */}
+                        <div className="absolute left-6 right-6 top-[13px] h-0.5 bg-gray-200" />
+                        {/* Active colored line */}
+                        <div 
+                          className="absolute left-6 top-[13px] h-0.5 bg-travel-blue transition-all duration-500"
+                          style={{ 
+                            width: booking.paymentStatus === 'paid' ? 'calc(100% - 48px)' : '33%'
+                          }} 
+                        />
+                        
+                        {/* Step Nodes */}
+                        {[
+                          { label: "Booked", done: true },
+                          { label: "Verified", done: booking.paymentStatus === 'paid' },
+                          { label: "Confirmed", done: booking.paymentStatus === 'paid' },
+                          { label: "Completed", done: false } // placeholder upcoming for now
+                        ].map((step, idx) => (
+                          <div key={idx} className="flex flex-col items-center gap-1.5 z-10">
+                            <div 
+                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold transition-all ${
+                                step.done 
+                                  ? 'bg-travel-blue border-travel-blue text-white shadow-md shadow-blue-500/20' 
+                                  : 'bg-white border-gray-200 text-gray-400'
+                              }`}
+                            >
+                              {idx + 1}
+                            </div>
+                            <span className={`text-[10px] font-bold tracking-tight ${step.done ? 'text-travel-blue' : 'text-gray-400'}`}>
+                              {step.label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="bg-gray-50 px-6 py-3 border-t border-gray-100 text-xs text-gray-500 flex justify-between items-center">
