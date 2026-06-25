@@ -6,6 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   CalendarDays, User, MapPin, Package, Phone, Mail, Lock, 
   BarChart3, TrendingUp, DollarSign, Users, MessageSquare, 
@@ -852,12 +858,33 @@ const Admin = () => {
                           </div>
 
                           <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                            <a 
-                              href={`mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject)}`}
-                              className="inline-flex items-center text-travel-blue font-semibold hover:underline"
-                            >
-                              Reply via Email &rarr;
-                            </a>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="link" className="p-0 h-auto text-travel-blue font-semibold hover:underline flex items-center gap-1 text-xs">
+                                  Reply via Email &rarr;
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="bg-white border rounded-xl shadow-lg p-1 z-50 min-w-[180px]">
+                                <DropdownMenuItem className="cursor-pointer px-3 py-2 text-xs hover:bg-gray-100 rounded-lg flex items-center gap-2" onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${contact.email}&su=Re: ${encodeURIComponent(contact.subject)}`, '_blank')}>
+                                  <Mail className="h-4 w-4 text-red-500" />
+                                  Open in Gmail (Web)
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer px-3 py-2 text-xs hover:bg-gray-100 rounded-lg flex items-center gap-2" onClick={() => window.location.href = `mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject)}`}>
+                                  <Mail className="h-4 w-4 text-blue-500" />
+                                  Open in Default App
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer px-3 py-2 text-xs hover:bg-gray-100 rounded-lg flex items-center gap-2" onClick={() => {
+                                  navigator.clipboard.writeText(contact.email);
+                                  toast({
+                                    title: "Copied!",
+                                    description: "Email address copied to clipboard.",
+                                  });
+                                }}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-gray-500"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                  Copy Email Address
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                             <span>Received: {formatDate(contact.createdAt)}</span>
                           </div>
                         </div>
